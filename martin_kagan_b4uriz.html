@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>B4_UR_IZ — See Your Data Before Your Eyes | Martin Kagan</title>
+<meta name="description" content="Martin Kagan's patented 3D spatial data engine. Visualize relational data in and over time — before your eyes. Watch the demos on YouTube."/>
+<meta property="og:title" content="B4_UR_IZ — See Your Data Before Your Eyes"/>
+<meta property="og:description" content="A patented 3D data visualization platform by Martin Kagan. Watch live demos on YouTube."/>
+<meta property="og:type" content="website"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #050a0f;
+    --surface: #0b1520;
+    --surface2: #0f1e2e;
+    --border: rgba(0,180,255,0.12);
+    --accent: #00b4ff;
+    --accent2: #00ffc8;
+    --text: #e8f4ff;
+    --muted: #6a9ab8;
+    --red: #ff4466;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,180,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,180,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SCANLINE OVERLAY ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 48px;
+    background: rgba(5,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    font-family: var(--font-head);
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+  }
+  .nav-logo span { color: var(--accent2); }
+
+  .nav-links { display: flex; gap: 32px; }
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    overflow: hidden;
+  }
+
+  /* Glow orbs */
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,180,255,0.12) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: pulse 6s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    50% { transform: translate(-50%,-50%) scale(1.12); opacity: 0.7; }
+  }
+
+  .tag {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    border: 1px solid rgba(0,255,200,0.3);
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .hero h1 .line1 { color: var(--text); display: block; }
+  .hero h1 .line2 {
+    display: block;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero-sub {
+    font-family: var(--font-mono);
+    font-size: clamp(14px, 1.8vw, 18px);
+    color: var(--muted);
+    max-width: 560px;
+    margin: 28px auto 0;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-sub strong { color: var(--text); font-weight: 400; }
+
+  .cta-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 48px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 28px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.2s;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: var(--bg);
+    font-weight: 400;
+  }
+  .btn-primary:hover {
+    background: var(--accent2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0,180,255,0.3);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(0,180,255,0.4);
+  }
+  .btn-outline:hover {
+    border-color: var(--accent);
+    background: rgba(0,180,255,0.08);
+    transform: translateY(-2px);
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    position: relative; z-index: 1;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .stat {
+    padding: 28px 48px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+    flex: 1;
+    min-width: 160px;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--font-head);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+    display: block;
+  }
+  .stat-label {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── SECTION ── */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 100px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: var(--font-head);
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 20px;
+  }
+
+  .section-body {
+    color: var(--muted);
+    max-width: 600px;
+    margin-bottom: 60px;
+  }
+
+  /* ── VIDEO GRID ── */
+  .video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .video-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  }
+
+  .video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 48px rgba(0,180,255,0.1);
+    border-color: rgba(0,180,255,0.3);
+  }
+
+  .video-card iframe {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: block;
+    border: none;
+  }
+
+  .video-card-info {
+    padding: 16px 20px 20px;
+  }
+
+  .video-card-info h3 {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+
+  .video-card-info p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── FEATURED (big) VIDEO ── */
+  .featured-video {
+    position: relative;
+    z-index: 1;
+    padding: 0 48px 80px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .featured-video iframe {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: block;
+  }
+
+  /* ── ABOUT ── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  @media (max-width: 760px) {
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+    section { padding: 60px 20px; }
+    .featured-video { padding: 0 20px 60px; }
+    .stat { padding: 20px 24px; }
+  }
+
+  .about-text h2 {
+    font-family: var(--font-head);
+    font-size: clamp(28px, 3vw, 40px);
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  .about-text p {
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .patent-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,68,102,0.1);
+    border: 1px solid rgba(255,68,102,0.3);
+    color: var(--red);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    padding: 8px 16px;
+    border-radius: 2px;
+    margin-top: 16px;
+    text-transform: uppercase;
+  }
+
+  /* Specs list */
+  .specs {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+  }
+
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-key { color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; }
+  .spec-val { color: var(--accent2); font-weight: 400; text-align: right; max-width: 60%; }
+
+  /* ── CHANNEL CTA ── */
+  .channel-cta {
+    position: relative;
+    z-index: 1;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 48px;
+    text-align: center;
+    overflow: hidden;
+  }
+
+  .channel-cta::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,180,255,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .channel-cta h2 {
+    font-family: var(--font-head);
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 800;
+    margin-bottom: 16px;
+  }
+
+  .channel-cta p {
+    color: var(--muted);
+    max-width: 480px;
+    margin: 0 auto 40px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    position: relative;
+    z-index: 1;
+    padding: 40px 48px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  footer p { font-size: 12px; color: var(--muted); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ── SCROLL ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Blinking cursor */
+  .cursor::after {
+    content: '█';
+    animation: blink 1s step-end infinite;
+    color: var(--accent);
+    margin-left: 2px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">B4<span>_UR_IZ</span></a>
+  <div class="nav-links">
+    <a href="#demos">Demos</a>
+    <a href="#about">About</a>
+    <a href="https://www.youtube.com/channel/UCmDI5hQOdCNd4bBs1mnMiMQ" target="_blank" rel="noopener">YouTube ↗</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="tag">Patented 3D Data Visualization Engine</div>
+  <h1>
+    <span class="line1">See Your Data</span>
+    <span class="line2">Before Your Eyes</span>
+  </h1>
+  <p class="hero-sub">
+    <strong>Martin Kagan</strong> built something the world has never seen —
+    a spatial 3D engine that puts 35 years of numerical data expertise
+    into a single cohesive, living visual.
+  </p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="#demos">▶ Watch Demos</a>
+    <a class="btn btn-outline" href="https://www.youtube.com/channel/UCmDI5hQOdCNd4bBs1mnMiMQ" target="_blank" rel="noopener">Subscribe on YouTube</a>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <span class="stat-num">35+</span>
+    <span class="stat-label">Years of expertise</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">3D</span>
+    <span class="stat-label">Spatial data engine</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">2016</span>
+    <span class="stat-label">US Patent granted</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">∞</span>
+    <span class="stat-label">Data dimensions</span>
+  </div>
+</div>
+
+<!-- FEATURED VIDEO -->
+<section id="demos">
+  <div class="section-label">Live Demos</div>
+  <h2 class="section-title reveal">Watch It <br/>In Action</h2>
+  <p class="section-body reveal">
+    These aren't slides or screenshots. Every video below is a real-time demo of the
+    B4_UR_IZ engine — hierarchical, longitudinal, relational data rendered spatially in 3D.
+    Watch patterns that spreadsheets and bar charts simply cannot show.
+  </p>
+</section>
+
+<!-- BIG FEATURED EMBED (channel page = most versatile) -->
+<div class="featured-video reveal">
+  <iframe
+    src="https://www.youtube.com/embed/videoseries?list=UUmDI5hQOdCNd4bBs1mnMiMQ&autoplay=0"
+    title="B4_UR_IZ — Martin Kagan Virtual Time Machine Channel"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    allowfullscreen>
+  </iframe>
+</div>
+
+<!-- VIDEO GRID — individual noteworthy videos -->
+<section style="padding-top:0;">
+  <div class="video-grid">
+
+    <div class="video-card reveal">
+      <iframe
+        src="https://www.youtube.com/embed?listType=user_uploads&list=UCmDI5hQOdCNd4bBs1mnMiMQ&index=0"
+        title="B4URIZ Demo — COVID-19 Case Study"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      <div class="video-card-info">
+        <h3>COVID-19 USA Case Study</h3>
+        <p>45-day projections visualized in the 3D spatial engine. See the pandemic data the way no chart ever could.</p>
+      </div>
+    </div>
+
+    <div class="video-card reveal">
+      <iframe
+        src="https://www.youtube.com/embed?listType=user_uploads&list=UCmDI5hQOdCNd4bBs1mnMiMQ&index=1"
+        title="B4URIZ — Macro Data Visualization"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      <div class="video-card-info">
+        <h3>Macro-Level Visualization</h3>
+        <p>From macroeconomic to microanalytic — the same engine handles every scale of data seamlessly.</p>
+      </div>
+    </div>
+
+    <div class="video-card reveal">
+      <iframe
+        src="https://www.youtube.com/embed?listType=user_uploads&list=UCmDI5hQOdCNd4bBs1mnMiMQ&index=2"
+        title="B4URIZ — Vortex Spatial Engine"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+      <div class="video-card-info">
+        <h3>The Vortex Engine</h3>
+        <p>A 3D vortex-driven spatial analysis engine that morphs into a multithreaded sequential processor.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-text reveal">
+      <div class="section-label">About</div>
+      <h2>Built by Martin Kagan.<br/>35 Years In The Making.</h2>
+      <p>
+        Martin Kagan spent over three decades in numerical calibration and
+        multi-dimensional data analysis before asking a simple question:
+        <em style="color:var(--text)">why can't I see all of this at once?</em>
+      </p>
+      <p>
+        In 2010 he began designing B4_UR_IZ. In 2013 he founded Data Cocoon LLC.
+        By 2016, the system was patented. Today it stands as a unique Cartesian
+        plane capable of visually projecting data in and over time — in 3D —
+        in a way that enhances cognitive recognition through proportional,
+        relative visual patterns.
+      </p>
+      <p>
+        Pie charts show a moment. Bar graphs show a comparison.
+        <strong style="color:var(--accent)">B4_UR_IZ tells the whole story.</strong>
+      </p>
+      <div class="patent-badge">
+        ⬡ US Patent — Oct. 11, 2016
+      </div>
+    </div>
+
+    <div class="specs reveal">
+      <div class="spec-row">
+        <span class="spec-key">Engine type</span>
+        <span class="spec-val">3D Vortex-Driven Spatial Analysis</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Data format</span>
+        <span class="spec-val">Hierarchical longitudinal relational</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Scripting</span>
+        <span class="spec-val">Full scripting capabilities</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Granularity</span>
+        <span class="spec-val">Cell-level to nth tessellation</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Processing</span>
+        <span class="spec-val">Multithreaded sequential logic</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Industries</span>
+        <span class="spec-val">Accounting, research, finance, health</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Founded</span>
+        <span class="spec-val">Data Cocoon LLC — 2013</span>
+      </div>
+      <div class="spec-row">
+        <span class="spec-key">Contact</span>
+        <span class="spec-val"><a href="mailto:Martin@B4URIZ.com" style="color:var(--accent)">Martin@B4URIZ.com</a></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CHANNEL CTA -->
+<div class="channel-cta">
+  <h2>Ready to see <span style="background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">your data</span><br/>like never before?</h2>
+  <p>Subscribe to Martin Kagan's YouTube channel for more demos, case studies, and deep-dives into the B4_UR_IZ platform.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="https://www.youtube.com/channel/UCmDI5hQOdCNd4bBs1mnMiMQ" target="_blank" rel="noopener">
+      ▶ Visit the YouTube Channel
+    </a>
+    <a class="btn btn-outline" href="https://datacocoon.com" target="_blank" rel="noopener">
+      datacocoon.com ↗
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© Martin Kagan / Data Cocoon LLC — B4_UR_IZ is a registered patent (2016)</p>
+  <p>
+    <a href="https://www.youtube.com/channel/UCmDI5hQOdCNd4bBs1mnMiMQ" target="_blank" rel="noopener">YouTube Channel</a>
+    &nbsp;·&nbsp;
+    <a href="mailto:Martin@B4URIZ.com">Martin@B4URIZ.com</a>
+    &nbsp;·&nbsp;
+    <a href="https://datacocoon.com" target="_blank" rel="noopener">datacocoon.com</a>
+  </p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => observer.observe(r));
+</script>
+</body>
+</html>
